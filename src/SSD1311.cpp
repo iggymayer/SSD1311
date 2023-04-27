@@ -159,7 +159,7 @@ void SSD1311::sendFloat(uint8_t col, uint8_t row, float digit, uint8_t dec, uint
 {
   char line[16];                  // 16 Characters
   dtostrf(digit, dec, nad, line); // Convert the float value to a string
-  sendString(col, row, line);
+  sendStr(col, row, line);
 }
 
 void SSD1311::sendStr(uint8_t col, uint8_t row, const char *String)
