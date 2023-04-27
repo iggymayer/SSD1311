@@ -2,6 +2,7 @@
 #include "Wire.h"
 
 #define SSD1311_ADDR 0x3C
+//#define SSD1311_ADDR 0x3D
 
 #ifndef RES
 #define RES 7
