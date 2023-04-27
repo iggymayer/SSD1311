@@ -162,7 +162,7 @@ void SSD1311::sendFloat(uint8_t col, uint8_t row, float digit, uint8_t dec, uint
   sendString(col, row, line);
 }
 
-void SSD1311::sendString(uint8_t col, uint8_t row, const char *String)
+void SSD1311::sendStr(uint8_t col, uint8_t row, const char *String)
 {
   setCursor(col, row);
   unsigned char i = 0;
@@ -173,7 +173,7 @@ void SSD1311::sendString(uint8_t col, uint8_t row, const char *String)
   }
 }
 
-void SSD1311::scrollString(byte row, char *message, unsigned int time)
+void SSD1311::scrollStr(byte row, char *message, unsigned int time)
 {
   char buffer[16];
   for (byte i = 0; i < strlen(message) + 16; i++)
@@ -190,7 +190,7 @@ void SSD1311::scrollString(byte row, char *message, unsigned int time)
       pos++;
     }
     // cursPos(0,row); removed by PG
-    sendString(0, row, buffer);
+    sendStr(0, row, buffer);
     delay(time);
   }
 }
