@@ -4,6 +4,7 @@ SSD1311 oled;
 
 void setup()
 {
+    oled.SWRES();
     oled.init();
     oled.setContrast(10);
     oled.sendString(0, 0, "Hello World!");
