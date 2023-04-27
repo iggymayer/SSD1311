@@ -173,7 +173,7 @@ void SSD1311::sendStr(uint8_t col, uint8_t row, const char *String)
   }
 }
 
-void SSD1311::scrollStr(byte row, char *message, unsigned int time)
+void SSD1311::scrollStr(byte row, char *message, unsigned int speed)
 {
   char buffer[16];
   for (byte i = 0; i < strlen(message) + 16; i++)
@@ -189,9 +189,8 @@ void SSD1311::scrollStr(byte row, char *message, unsigned int time)
         buffer[j] = message[pos - 16];
       pos++;
     }
-    // cursPos(0,row); removed by PG
     sendStr(0, row, buffer);
-    delay(time);
+    delay(speed);
   }
 }
 
