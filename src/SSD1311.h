@@ -19,8 +19,8 @@ public:
 	void sendCMD(unsigned char command);
 	void sendData(unsigned char data);
 	void sendFloat(uint8_t col, uint8_t row, float digit, uint8_t dec, uint8_t nad);
-	void sendString(uint8_t col, uint8_t row, const char *String);
-	void scrollString(byte row, char *message, unsigned int time);
+	void sendStr(uint8_t col, uint8_t row, const char *String);
+	void scrollStr(byte row, char *message, unsigned int time);
 	void dispOFF();
 	void dispON();
 };
