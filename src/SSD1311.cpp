@@ -1,22 +1,16 @@
 #include "Wire.h"
 #include "SSD1311.h"
 
-SSD1311::SSD1311()
-{
-}
-
-void SSD1311::SWRES()
-{
-  pinMode(RES, OUTPUT);
-  digitalWrite(RES, LOW);
-  delayMicroseconds(5);
-  digitalWrite(RES, HIGH);
-  delayMicroseconds(100);
-}
+SSD1311::SSD1311(uint8_t addr, uint8_t res, uint8_t cols, uint8_t rows) : address(addr), resetPin(res), numCols(cols), numRows(rows)
+{}
 
 void SSD1311::init()
 {
-  delay(100);
+  pinMode(resetPin, OUTPUT);
+  digitalWrite(resetPin, LOW);
+  delayMicroseconds(5);
+  digitalWrite(resetPin, HIGH);
+  delayMicroseconds(100);
 
   // Set Internal Regulator
   sendCMD(0x2A); // Set RE=1	00101010B
@@ -26,7 +20,7 @@ void SSD1311::init()
   sendCMD(0x28); // Set IS=0 ,RE =0
 
   // Logic OFF
-  sendCMD(0x08); // Display OFF
+  sendCMD(DISPLAY_OFF); // Display OFF
 
   // Initial Settings Configuration
   sendCMD(0x2A); // Set RE=1	00101010B
@@ -82,7 +76,7 @@ void SSD1311::init()
   // sendCMD(0x02); // 00000010:Internal VSL,GPIO Output LOW.
 
   // Set Contrast
-  sendCMD(0x81); // 10000001
+  sendCMD(DISPLAY_CONTRAST); // 10000001
   sendCMD(0xFF); // DEC:255
 
   // Set Pre-charge Period
@@ -104,20 +98,20 @@ void SSD1311::init()
   sendCMD(0x28); // Set IS=0 ,RE =0
 
   // Clear Display
-  sendCMD(0x01);
+  sendCMD(DISPLAY_CLEAR);
 
   // Set DDRAM Address
   sendCMD(0x80); // 10000000.Default
 
   // Logic ON
-  sendCMD(0x0C); // Display ON
+  sendCMD(DISPLAY_ON); // Display ON
 
   delay(200);
 }
 
 void SSD1311::clear()
 {
-  sendCMD(0x01);
+  sendCMD(DISPLAY_CLEAR);
 }
 
 void SSD1311::setContrast(unsigned char contrast)
@@ -126,7 +120,7 @@ void SSD1311::setContrast(unsigned char contrast)
   sendCMD(0x2A); // Set RE=1	00101010B
   sendCMD(0x79); // Set SD=1	01111001B
 
-  sendCMD(0x81);     // Set Contrast
+  sendCMD(DISPLAY_CONTRAST);     // Set Contrast
   sendCMD(contrast); // send contrast value
   sendCMD(0x78);     // CMD Set Disabled
   sendCMD(0x28);
@@ -134,31 +128,35 @@ void SSD1311::setContrast(unsigned char contrast)
 
 void SSD1311::setCursor(uint8_t col, uint8_t row)
 {
+  if (row > numRows || col > numCols)
+    return;
   int row_offsets[] = {0x00, 0x40};
   sendCMD(0x80 | (col + row_offsets[row]));
 }
 
 void SSD1311::sendCMD(unsigned char command)
 {
-  Wire.beginTransmission(SSD1311_ADDR);
+  Wire.beginTransmission(address);
   Wire.write(0X80); // Set Command mode
   Wire.write(command);
   Wire.endTransmission();
-  delay(10);
+  delayMicroseconds(100);
 }
 
 void SSD1311::sendData(unsigned char data)
 {
-  Wire.beginTransmission(SSD1311_ADDR);
+  Wire.beginTransmission(address);
   Wire.write(0x40); //  Set Data mode
   Wire.write(data);
   Wire.endTransmission();
+  delayMicroseconds(100);
 }
 
 void SSD1311::sendFloat(uint8_t col, uint8_t row, float digit, uint8_t dec, uint8_t nad)
 {
-  char line[16];                  // 16 Characters
+  char line[17];                  // 16 characters + null terminator
   dtostrf(digit, dec, nad, line); // Convert the float value to a string
+  line[16] = '\0';                // Ensure null termination
   sendStr(col, row, line);
 }
 
@@ -173,31 +171,32 @@ void SSD1311::sendStr(uint8_t col, uint8_t row, const char *String)
   }
 }
 
-void SSD1311::scrollStr(byte row, char *message, unsigned int speed)
+void SSD1311::scrollStr(byte row, const char *message, unsigned int speed, uint8_t displayWidth)
 {
-  char buffer[16];
-  for (byte i = 0; i < strlen(message) + 16; i++)
+  if (displayWidth > 16) displayWidth = 16;
+  char *buffer = new char[displayWidth + 1]();
+  size_t messageLen = strlen(message);
+
+  for (size_t i = 0; i < messageLen + displayWidth; i++)
   {
-    byte pos = i + 1;
-    for (byte j = 0; j < 16; j++)
+    for (size_t j = 0; j < displayWidth; j++)
     {
-      if ((pos < 16) || (pos > strlen(message) + 15))
-      {
-        buffer[j] = ' ';
-      }
-      else
-        buffer[j] = message[pos - 16];
-      pos++;
+      size_t pos = i + j - displayWidth;
+      buffer[j] = (pos < messageLen) ? message[pos] : ' ';
     }
+    buffer[displayWidth] = '\0';
+
     sendStr(0, row, buffer);
     delay(speed);
   }
+
+  delete[] buffer;
 }
 
 void SSD1311::dispOFF()
 {
   // Logic Off
-  sendCMD(0x08); // Display OFF
+  sendCMD(DISPLAY_OFF); // Display OFF
   delay(100);
 
   // HV OFF
@@ -221,5 +220,5 @@ void SSD1311::dispON()
   delay(100);
 
   // Logic ON
-  sendCMD(0x0C); // Display ON
+  sendCMD(DISPLAY_ON); // Display ON
 }
