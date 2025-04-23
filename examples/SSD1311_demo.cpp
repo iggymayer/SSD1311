@@ -1,12 +1,11 @@
 #include "SSD1311.h"
 
-SSD1311 oled;
+SSD1311 oled(0x3C, 4, 16, 2);
 
 void setup()
 {
-    oled.SWRES();
     oled.init();
-    oled.setContrast(10);
+    oled.setContrast(127);
     oled.sendString(0, 0, "Hello World!");
 }
 
